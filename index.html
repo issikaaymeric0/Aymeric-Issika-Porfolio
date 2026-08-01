@@ -193,48 +193,6 @@ h2.title{font-family:var(--display); font-size:clamp(24px,3vw,34px); font-weight
 .room .rname{font-family:var(--display); font-size:13px; margin-bottom:8px; color:var(--text);}
 .room .rmeta{display:flex; justify-content:space-between; align-items:center;}
 
-/* Dashboard */
-.dash-toggle{
-  position:fixed; bottom:24px; right:24px; z-index:500;
-  font-family:var(--display); font-size:12.5px; background:var(--ink); color:#7ee787;
-  border:1px solid var(--ink-line-bright); padding:12px 18px; border-radius:30px; cursor:pointer;
-  box-shadow:0 8px 24px rgba(0,0,0,.35); display:flex; align-items:center; gap:8px;
-}
-.dash-toggle:hover{border-color:#7ee787;}
-#dashPanel{
-  position:fixed; inset:0; background:rgba(20,17,12,.72); backdrop-filter:blur(3px);
-  z-index:2000; display:none; align-items:flex-start; justify-content:center; padding:6vh 20px; overflow-y:auto;
-}
-#dashPanel.open{display:flex;}
-.dash-box{
-  width:100%; max-width:720px; background:var(--ink-panel); border:1px solid var(--ink-line-bright);
-  border-radius:10px; overflow:hidden;
-}
-.dash-header{display:flex; justify-content:space-between; align-items:center; padding:18px 24px; border-bottom:1px solid var(--ink-line); background:var(--ink-elevated);}
-.dash-header h3{font-family:var(--display); font-size:15px; color:#7ee787;}
-.dash-close{cursor:pointer; color:var(--ink-text-dim); font-family:var(--display); font-size:13px; border:1px solid var(--ink-line-bright); padding:6px 10px; border-radius:4px;}
-.dash-close:hover{color:#ff8f8f; border-color:#ff8f8f;}
-.dash-body{padding:24px;}
-.dash-tabs{display:flex; gap:8px; margin-bottom:20px;}
-.dash-tab{font-family:var(--display); font-size:12px; padding:8px 14px; border:1px solid var(--ink-line-bright); border-radius:4px; cursor:pointer; color:var(--ink-text-dim);}
-.dash-tab.active{color:#7ee787; border-color:#7ee787; background:var(--ink-elevated);}
-.field{margin-bottom:14px;}
-.field label{display:block; font-family:var(--display); font-size:11px; color:var(--ink-text-dim); margin-bottom:6px;}
-.field input, .field textarea, .field select{
-  width:100%; background:var(--ink); border:1px solid var(--ink-line-bright); border-radius:5px; padding:10px 12px;
-  color:var(--ink-text); font-family:var(--sans); font-size:13.5px;
-}
-.field textarea{resize:vertical; min-height:70px;}
-.field input:focus, .field textarea:focus, .field select:focus{outline:none; border-color:#7ee787;}
-.dash-submit{width:100%; margin-top:6px;}
-.entry-list{margin-top:26px; border-top:1px solid var(--ink-line); padding-top:18px;}
-.entry-row{display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--ink-line); gap:10px;}
-.entry-row .et{font-family:var(--display); font-size:12.5px; color:var(--ink-text);}
-.entry-row .ec{font-family:var(--display); font-size:10.5px; color:var(--ink-text-dim);}
-.del-btn{font-family:var(--display); font-size:11px; color:#ff8f8f; background:none; border:1px solid rgba(255,143,143,.35); padding:5px 10px; border-radius:4px; cursor:pointer; flex-shrink:0;}
-.dash-note{font-family:var(--display); font-size:11px; color:var(--ink-text-dim); margin-top:16px; line-height:1.6;}
-.empty-note{font-family:var(--display); font-size:12px; color:var(--ink-text-dim); padding:16px 0;}
-
 /* Contact */
 .contact-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px;}
 .contact-card{background:var(--bg-panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
@@ -430,50 +388,6 @@ footer{padding:36px 64px; font-family:var(--display); font-size:11.5px; color:va
   </main>
 </div>
 
-<!-- Dashboard toggle -->
-<button class="dash-toggle" onclick="openDash()">⌘ dashboard</button>
-
-<div id="dashPanel">
-  <div class="dash-box">
-    <div class="dash-header">
-      <h3>~/dashboard — add content</h3>
-      <div class="dash-close" onclick="closeDash()">close [x]</div>
-    </div>
-    <div class="dash-body">
-      <div class="dash-tabs">
-        <div class="dash-tab active" data-cat="report" onclick="setCat('report',this)">Pentest Report</div>
-        <div class="dash-tab" data-cat="walkthrough" onclick="setCat('walkthrough',this)">Walkthrough</div>
-        <div class="dash-tab" data-cat="blog" onclick="setCat('blog',this)">Blog Post</div>
-        <div class="dash-tab" data-cat="tool" onclick="setCat('tool',this)">Tool</div>
-      </div>
-      <form id="entryForm" onsubmit="return submitEntry(event)">
-        <div class="field">
-          <label>Title</label>
-          <input type="text" id="f-title" required placeholder="e.g. Blue — HTB Write-up">
-        </div>
-        <div class="field">
-          <label>Summary</label>
-          <textarea id="f-summary" required placeholder="Short description of the box / post / tool"></textarea>
-        </div>
-        <div class="field">
-          <label>Difficulty / Language (optional)</label>
-          <input type="text" id="f-tag" placeholder="e.g. Easy, Medium, Python">
-        </div>
-        <div class="field">
-          <label>Link (optional)</label>
-          <input type="url" id="f-link" placeholder="https://...">
-        </div>
-        <button type="submit" class="btn btn-primary dash-submit">Publish entry</button>
-      </form>
-      <div class="entry-list">
-        <div class="eyebrow" style="margin-bottom:12px;">stored_entries</div>
-        <div id="entryList"></div>
-      </div>
-      <div class="dash-note">Entries you publish here are saved to shared storage for this portfolio artifact — anyone with the link can see (and, currently, add or remove) them. Treat this as your live editing panel rather than a private admin area.</div>
-    </div>
-  </div>
-</div>
-
 <script>
 /* ---------------- Boot sequence ---------------- */
 const bootLines = [
@@ -555,21 +469,29 @@ const seedReports = [
   {title:"Kenobi — TryHackMe", summary:"Enumerated Samba shares to pull SSH keys, abused a vulnerable ProFTPd version for initial access, then chained a PATH-hijack on a SUID binary to escalate to root.", tag:"Easy", link:"https://tryhackme.com/room/kenobi"},
   {title:"RootMe — TryHackMe", summary:"Web enumeration uncovered an upload filter bypass for a PHP reverse shell, followed by a classic SUID Python privilege escalation to root.", tag:"Easy", link:"https://tryhackme.com/room/rrootme"},
   {title:"Mr Robot CTF — TryHackMe", summary:"WordPress recon and a brute-forced admin login led to a reverse shell via a themed plugin editor, then a SUID nmap interactive-mode escalation to root.", tag:"Medium", link:"https://tryhackme.com/room/mrrobot"}
+
+  /* ADD NEW REPORTS/WALKTHROUGHS HERE — copy the format above and add a comma
+     after the previous line, e.g.:
+     ,{title:"Blue — TryHackMe", summary:"...", tag:"Easy", link:"https://..."} */
 ];
 const seedTools = [
   {title:"portscan-lite", summary:"Lightweight multithreaded TCP port scanner with service-banner grabbing, built to speed up initial recon before a full nmap pass.", tag:"Python", link:""},
   {title:"hash-id-cracker", summary:"CLI utility that fingerprints a hash format and runs a wordlist attack against it — built while working through Crack the Hash.", tag:"Python", link:""},
   {title:"subdir-hunter", summary:"Simple async directory/file brute-forcer for web recon, with a configurable wordlist and status-code filtering.", tag:"Python", link:""}
+
+  /* ADD NEW TOOLS HERE, same format:
+     ,{title:"tool-name", summary:"...", tag:"Python", link:"https://github.com/..."} */
 ];
 const seedBlog = [
   {title:"Notes on Linux Privilege Escalation", summary:"A running checklist of the enumeration steps I actually use — SUID binaries, cron jobs, sudo misconfig, and kernel exploits — distilled from lab practice.", tag:"Write-up", link:""},
   {title:"Getting Started with Active Directory Attacks", summary:"What I learned working through TryHackMe's AD Basics room: the core AD objects, common misconfigurations, and why enumeration always comes first.", tag:"Notes", link:""}
+
+  /* ADD NEW BLOG POSTS HERE, same format:
+     ,{title:"Post title", summary:"...", tag:"Write-up", link:"https://..."} */
 ];
 
-/* ---------------- Storage-backed dynamic entries ---------------- */
-let allEntries = []; // {id, category, title, summary, tag, link}
-
-function cardHTML(e, removable){
+/* ---------------- Render cards from the arrays above ---------------- */
+function cardHTML(e){
   return `<div class="card">
     <h3>${escapeHTML(e.title)}</h3>
     <p>${escapeHTML(e.summary)}</p>
@@ -580,88 +502,11 @@ function cardHTML(e, removable){
 function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function renderGrids(){
-  const reportsGrid = document.getElementById('reportsGrid');
-  const toolsGrid = document.getElementById('toolsGrid');
-  const blogGrid = document.getElementById('blogGrid');
-
-  const dynReports = allEntries.filter(e=>e.category==='report'||e.category==='walkthrough');
-  const dynTools = allEntries.filter(e=>e.category==='tool');
-  const dynBlog = allEntries.filter(e=>e.category==='blog');
-
-  reportsGrid.innerHTML = seedReports.map(e=>cardHTML(e,false)).join('') + dynReports.map(e=>cardHTML(e,true)).join('');
-  toolsGrid.innerHTML = seedTools.map(e=>cardHTML(e,false)).join('') + dynTools.map(e=>cardHTML(e,true)).join('');
-  blogGrid.innerHTML = seedBlog.map(e=>cardHTML(e,false)).join('') + dynBlog.map(e=>cardHTML(e,true)).join('');
+  document.getElementById('reportsGrid').innerHTML = seedReports.map(cardHTML).join('');
+  document.getElementById('toolsGrid').innerHTML = seedTools.map(cardHTML).join('');
+  document.getElementById('blogGrid').innerHTML = seedBlog.map(cardHTML).join('');
 }
 renderGrids();
-
-async function loadEntries(){
-  try{
-    const idx = await window.storage.list('entry:', true);
-    if(!idx || !idx.keys || idx.keys.length===0){ allEntries=[]; renderGrids(); renderDashList(); return; }
-    const results = await Promise.all(idx.keys.map(k=>window.storage.get(k, true).catch(()=>null)));
-    allEntries = results.filter(Boolean).map(r=>{
-      try{ return JSON.parse(r.value); }catch(e){ return null; }
-    }).filter(Boolean).sort((a,b)=> (b.ts||0)-(a.ts||0));
-  }catch(e){
-    allEntries = [];
-  }
-  renderGrids();
-  renderDashList();
-}
-loadEntries();
-
-let activeCat = 'report';
-function setCat(cat, el){
-  activeCat = cat;
-  document.querySelectorAll('.dash-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-}
-
-async function submitEntry(ev){
-  ev.preventDefault();
-  const title = document.getElementById('f-title').value.trim();
-  const summary = document.getElementById('f-summary').value.trim();
-  const tag = document.getElementById('f-tag').value.trim();
-  const link = document.getElementById('f-link').value.trim();
-  if(!title || !summary) return false;
-  const id = 'entry:' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
-  const data = { id, category: activeCat, title, summary, tag, link, ts: Date.now() };
-  try{
-    const res = await window.storage.set(id, JSON.stringify(data), true);
-    if(!res){ alert('Could not save this entry — please try again.'); return false; }
-    document.getElementById('entryForm').reset();
-    await loadEntries();
-  }catch(e){
-    alert('Storage error — could not save this entry.');
-  }
-  return false;
-}
-
-function renderDashList(){
-  const list = document.getElementById('entryList');
-  if(allEntries.length===0){ list.innerHTML = '<div class="empty-note">No entries added yet. Anything you publish here will also appear in the matching section of the site.</div>'; return; }
-  list.innerHTML = allEntries.map(e=>`
-    <div class="entry-row">
-      <div>
-        <div class="et">${escapeHTML(e.title)}</div>
-        <div class="ec">${e.category}${e.tag?(' · '+escapeHTML(e.tag)):''}</div>
-      </div>
-      <button class="del-btn" onclick="deleteEntry('${e.id}')">delete</button>
-    </div>
-  `).join('');
-}
-
-async function deleteEntry(id){
-  try{
-    await window.storage.delete(id, true);
-    await loadEntries();
-  }catch(e){
-    alert('Could not delete this entry.');
-  }
-}
-
-function openDash(){ document.getElementById('dashPanel').classList.add('open'); }
-function closeDash(){ document.getElementById('dashPanel').classList.remove('open'); }
 </script>
 </body>
 </html>
