@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aymeric Issika // root@security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e2ddcd;
+  --bg-panel:#ece7d8;
+  --bg-elevated:#f6f2e5;
+  --line:#c8c0a6;
+  --line-bright:#a99f80;
+  --text:#211d14;
+  --text-dim:#5b5541;
+  --text-faint:#89826a;
+  --cyan:#0d6e63;
+  --amber:#a1531a;
+  --red:#a1281e;
+  --green:#2f6b39;
+  --ink:#161310;
+  --ink-panel:#1d1a15;
+  --ink-elevated:#242019;
+  --ink-line:#3a3226;
+  --ink-line-bright:#544a38;
+  --ink-text:#e9e4d4;
+  --ink-text-dim:#a9a18a;
+  --mono:'IBM Plex Mono',monospace;
+  --display:'Space Grotesk',sans-serif;
+  --sans:'Source Serif 4',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.6;
+  min-height:100vh;
+  position:relative;
+}
+body::before{
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 3px);
+  pointer-events:none;
+  z-index:9000;
+  opacity:.5;
+}
+::selection{background:var(--cyan);color:var(--ink-text);}
+a{color:inherit;text-decoration:none;}
+img{max-width:100%;display:block;}
+.mono{font-family:var(--mono);}
+
+/* ---------- Boot sequence ---------- */
+#boot{
+  position:fixed; inset:0; background:var(--ink); color:#7ee787;
+  font-family:var(--mono); z-index:99999; padding:6vh 6vw;
+  font-size:14px; overflow:hidden;
+}
+#boot pre{white-space:pre-wrap;}
+#boot .cursor{display:inline-block;width:8px;height:14px;background:#7ee787;animation:blink 1s steps(1) infinite;vertical-align:-2px;}
+@keyframes blink{50%{opacity:0;}}
+#boot.hide{animation:bootOut .6s ease forwards;}
+@keyframes bootOut{to{opacity:0;visibility:hidden;}}
+
+/* ---------- Layout ---------- */
+.shell{display:flex; min-height:100vh;}
+.nav{
+  width:250px; flex-shrink:0; background:var(--ink);
+  border-right:1px solid var(--ink-line); position:sticky; top:0; height:100vh;
+  padding:28px 0; overflow-y:auto;
+}
+.nav-id{padding:0 22px 22px; border-bottom:1px solid var(--ink-line); margin-bottom:14px;}
+.nav-id .who{font-family:var(--display); font-size:13px; color:#7ee787;}
+.nav-id .path{font-family:var(--display); font-size:11px; color:var(--ink-text-dim); margin-top:4px;}
+.nav-tree{padding:0 10px;}
+.nav-tree a{
+  display:flex; align-items:center; gap:10px;
+  font-family:var(--display); font-size:13px; color:var(--ink-text-dim);
+  padding:9px 12px; border-radius:4px; margin-bottom:2px;
+  border-left:2px solid transparent;
+}
+.nav-tree a:hover{color:var(--ink-text); background:var(--ink-panel);}
+.nav-tree a.active{color:#7ee787; border-left-color:#7ee787; background:var(--ink-panel);}
+.nav-tree .idx{color:var(--ink-text-dim); font-size:11px;}
+.nav-foot{padding:18px 22px 0; margin-top:18px; border-top:1px solid var(--ink-line);}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#7ee787;margin-right:7px;box-shadow:0 0 6px #7ee787;}
+.nav-foot .stat{font-family:var(--display);font-size:11px;color:var(--ink-text-dim);margin-top:8px;}
+.nav-foot > div:first-child{color:var(--ink-text);font-size:12px;font-family:var(--display);}
+
+.mobile-bar{display:none;}
+
+main{flex:1; min-width:0;}
+.section{padding:80px 64px; border-bottom:1px solid var(--line); position:relative;}
+.section:last-of-type{border-bottom:none;}
+.eyebrow{
+  font-family:var(--display); font-size:12px; color:var(--cyan); letter-spacing:.08em;
+  display:flex; align-items:center; gap:10px; margin-bottom:10px;
+}
+.eyebrow::before{content:'~/';color:var(--text-faint);}
+h2.title{font-family:var(--display); font-size:clamp(24px,3vw,34px); font-weight:600; color:var(--text); margin-bottom:6px;}
+.subhead{color:var(--text-dim); max-width:620px; margin-bottom:40px; font-size:15px;}
+
+/* ---------- Hero ---------- */
+.hero{padding:70px 64px 60px; border-bottom:1px solid var(--line);}
+.hero-top{font-family:var(--mono);font-size:12px;color:var(--text-faint);margin-bottom:26px;display:flex;gap:8px;align-items:center;}
+.hero h1{
+  font-family:var(--display); font-weight:700;
+  font-size:clamp(32px,5vw,58px); line-height:1.05; letter-spacing:-.01em;
+  margin-bottom:18px;
+}
+.hero h1 .accent{color:var(--cyan);}
+.hero .tagline{font-size:17px; color:var(--text-dim); max-width:600px; margin-bottom:30px;}
+.hero .type-line{font-family:var(--mono);font-size:15px;color:var(--amber);min-height:22px;margin-bottom:34px;}
+.hero .type-line .cursor2{display:inline-block;width:8px;height:16px;background:var(--amber);vertical-align:-3px;animation:blink 1s steps(1) infinite;}
+.badge-row{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:36px;}
+.badge{
+  font-family:var(--display); font-size:11.5px; color:var(--text-dim);
+  border:1px solid var(--line-bright); padding:6px 12px; border-radius:20px;
+  background:var(--bg-panel);
+}
+.hero-cta{display:flex; gap:14px; flex-wrap:wrap;}
+.btn{
+  font-family:var(--display); font-size:13px; padding:12px 22px; border-radius:4px;
+  border:1px solid var(--line-bright); cursor:pointer; transition:all .15s ease;
+  display:inline-flex; align-items:center; gap:8px;
+}
+.btn-primary{background:var(--cyan); color:var(--ink-text); border-color:var(--cyan); font-weight:600;}
+.btn-primary:hover{background:#0a5850;}
+.btn-ghost{color:var(--text); background:transparent;}
+.btn-ghost:hover{border-color:var(--cyan); color:var(--cyan);}
+
+.stat-strip{display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--line);}
+.stat-strip div{padding:20px 24px; border-right:1px solid var(--line);}
+.stat-strip div:last-child{border-right:none;}
+.stat-strip .num{font-family:var(--display); font-size:24px; color:var(--cyan); font-weight:600;}
+.stat-strip .lbl{font-size:11.5px; color:var(--text-faint); font-family:var(--display); margin-top:2px;}
+
+/* ---------- About ---------- */
+.about-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:48px; align-items:start;}
+.about-grid p{color:var(--text-dim); margin-bottom:16px; font-size:15px;}
+.term-card{
+  background:var(--ink-panel); border:1px solid var(--ink-line); border-radius:8px; overflow:hidden;
+}
+.term-head{display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid var(--ink-line); background:var(--ink-elevated);}
+.term-head span{width:10px;height:10px;border-radius:50%; display:inline-block;}
+.term-head .r{background:#ff5f56;} .term-head .y{background:#ffbd2e;} .term-head .g{background:#27c93f;}
+.term-head .fname{font-family:var(--mono); font-size:11px; color:var(--ink-text-dim); margin-left:8px;}
+.term-body{padding:18px 18px; font-family:var(--mono); font-size:12.5px; color:var(--ink-text-dim); white-space:pre-wrap;}
+.term-body .k{color:#7ee787;} .term-body .v{color:var(--ink-text);}
+
+/* ---------- Cards / grids ---------- */
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+.grid-2{display:grid; grid-template-columns:repeat(2,1fr); gap:20px;}
+.card{
+  background:var(--bg-panel); border:1px solid var(--line); border-radius:8px; padding:24px;
+  transition:border-color .15s ease, transform .15s ease;
+}
+.card:hover{border-color:var(--line-bright); transform:translateY(-2px);}
+.card h3{font-family:var(--display); font-size:16px; margin-bottom:8px; color:var(--text);}
+.card p{color:var(--text-dim); font-size:13.5px; margin-bottom:14px;}
+.tag-row{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+.tag{font-family:var(--display); font-size:10.5px; padding:3px 9px; border-radius:3px; border:1px solid var(--line-bright); color:var(--text-faint);}
+.tag.difficulty-easy{color:var(--green); border-color:rgba(126,231,135,.3);}
+.tag.difficulty-medium{color:var(--amber); border-color:rgba(255,180,84,.3);}
+.tag.difficulty-hard{color:var(--red); border-color:rgba(255,107,107,.3);}
+.card-link{font-family:var(--display); font-size:12px; color:var(--cyan); display:inline-flex; align-items:center; gap:6px;}
+.card-link:hover{text-decoration:underline;}
+
+/* Certification */
+.cert-card{
+  display:flex; gap:24px; align-items:center; background:var(--bg-panel);
+  border:1px solid var(--line); border-radius:10px; padding:30px; position:relative; overflow:hidden;
+}
+.cert-stamp{
+  font-family:var(--display); font-size:11px; color:var(--green); border:2px solid var(--green);
+  padding:6px 14px; border-radius:4px; transform:rotate(-6deg); letter-spacing:.06em;
+  position:absolute; top:24px; right:28px;
+}
+.cert-icon{width:56px; height:56px; border-radius:10px; background:var(--bg-elevated); border:1px solid var(--line-bright); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;}
+.cert-card h3{font-family:var(--display); font-size:18px; margin-bottom:4px;}
+.cert-card .issuer{color:var(--text-dim); font-size:13.5px; margin-bottom:14px;}
+
+/* Rooms grid (small) */
+.room-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px;}
+.room{
+  border:1px solid var(--line); border-radius:6px; padding:14px 16px; background:var(--bg-panel);
+}
+.room .rname{font-family:var(--display); font-size:13px; margin-bottom:8px; color:var(--text);}
+.room .rmeta{display:flex; justify-content:space-between; align-items:center;}
+
+/* Dashboard */
+.dash-toggle{
+  position:fixed; bottom:24px; right:24px; z-index:500;
+  font-family:var(--display); font-size:12.5px; background:var(--ink); color:#7ee787;
+  border:1px solid var(--ink-line-bright); padding:12px 18px; border-radius:30px; cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.35); display:flex; align-items:center; gap:8px;
+}
+.dash-toggle:hover{border-color:#7ee787;}
+#dashPanel{
+  position:fixed; inset:0; background:rgba(20,17,12,.72); backdrop-filter:blur(3px);
+  z-index:2000; display:none; align-items:flex-start; justify-content:center; padding:6vh 20px; overflow-y:auto;
+}
+#dashPanel.open{display:flex;}
+.dash-box{
+  width:100%; max-width:720px; background:var(--ink-panel); border:1px solid var(--ink-line-bright);
+  border-radius:10px; overflow:hidden;
+}
+.dash-header{display:flex; justify-content:space-between; align-items:center; padding:18px 24px; border-bottom:1px solid var(--ink-line); background:var(--ink-elevated);}
+.dash-header h3{font-family:var(--display); font-size:15px; color:#7ee787;}
+.dash-close{cursor:pointer; color:var(--ink-text-dim); font-family:var(--display); font-size:13px; border:1px solid var(--ink-line-bright); padding:6px 10px; border-radius:4px;}
+.dash-close:hover{color:#ff8f8f; border-color:#ff8f8f;}
+.dash-body{padding:24px;}
+.dash-tabs{display:flex; gap:8px; margin-bottom:20px;}
+.dash-tab{font-family:var(--display); font-size:12px; padding:8px 14px; border:1px solid var(--ink-line-bright); border-radius:4px; cursor:pointer; color:var(--ink-text-dim);}
+.dash-tab.active{color:#7ee787; border-color:#7ee787; background:var(--ink-elevated);}
+.field{margin-bottom:14px;}
+.field label{display:block; font-family:var(--display); font-size:11px; color:var(--ink-text-dim); margin-bottom:6px;}
+.field input, .field textarea, .field select{
+  width:100%; background:var(--ink); border:1px solid var(--ink-line-bright); border-radius:5px; padding:10px 12px;
+  color:var(--ink-text); font-family:var(--sans); font-size:13.5px;
+}
+.field textarea{resize:vertical; min-height:70px;}
+.field input:focus, .field textarea:focus, .field select:focus{outline:none; border-color:#7ee787;}
+.dash-submit{width:100%; margin-top:6px;}
+.entry-list{margin-top:26px; border-top:1px solid var(--ink-line); padding-top:18px;}
+.entry-row{display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--ink-line); gap:10px;}
+.entry-row .et{font-family:var(--display); font-size:12.5px; color:var(--ink-text);}
+.entry-row .ec{font-family:var(--display); font-size:10.5px; color:var(--ink-text-dim);}
+.del-btn{font-family:var(--display); font-size:11px; color:#ff8f8f; background:none; border:1px solid rgba(255,143,143,.35); padding:5px 10px; border-radius:4px; cursor:pointer; flex-shrink:0;}
+.dash-note{font-family:var(--display); font-size:11px; color:var(--ink-text-dim); margin-top:16px; line-height:1.6;}
+.empty-note{font-family:var(--display); font-size:12px; color:var(--ink-text-dim); padding:16px 0;}
+
+/* Contact */
+.contact-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px;}
+.contact-card{background:var(--bg-panel); border:1px solid var(--line); border-radius:8px; padding:22px;}
+.contact-card .lbl{font-family:var(--display); font-size:11px; color:var(--text-faint); margin-bottom:8px;}
+.contact-card .val{font-family:var(--display); font-size:15px; color:var(--cyan);}
+.social-row{display:flex; gap:12px; margin-top:24px; flex-wrap:wrap;}
+.social-chip{font-family:var(--display); font-size:12.5px; border:1px solid var(--line-bright); padding:10px 16px; border-radius:6px; color:var(--text-dim);}
+.social-chip:hover{color:var(--cyan); border-color:var(--cyan);}
+
+footer{padding:36px 64px; font-family:var(--display); font-size:11.5px; color:var(--text-faint); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+
+@media (max-width:900px){
+  .shell{flex-direction:column;}
+  .nav{display:none;}
+  .mobile-bar{
+    display:flex; justify-content:space-between; align-items:center;
+    position:sticky; top:0; z-index:400; background:var(--ink); border-bottom:1px solid var(--ink-line);
+    padding:14px 20px; font-family:var(--mono); font-size:13px; color:#7ee787;
+  }
+  .section, .hero{padding:48px 24px;}
+  .about-grid, .grid-3, .grid-2, .contact-grid, .stat-strip{grid-template-columns:1fr;}
+  .stat-strip div{border-right:none; border-bottom:1px solid var(--line);}
+  footer{padding:28px 24px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important;}
+}
+</style>
+</head>
+<body>
+
+<div id="boot"><pre id="bootText"></pre></div>
+
+<div class="mobile-bar">
+  <span>root@issika:~$</span>
+  <span onclick="document.getElementById('m-nav').classList.toggle('open')">menu</span>
+</div>
+
+<div class="shell">
+  <nav class="nav" id="sideNav">
+    <div class="nav-id">
+      <div class="who">aymeric@issika</div>
+      <div class="path">~/portfolio — session active</div>
+    </div>
+    <div class="nav-tree">
+      <a href="#about"><span class="idx">01</span> about.me</a>
+      <a href="#certs"><span class="idx">02</span> certifications</a>
+      <a href="#thm"><span class="idx">03</span> tryhackme.log</a>
+      <a href="#reports"><span class="idx">04</span> pentest_reports</a>
+      <a href="#tools"><span class="idx">05</span> security_tools</a>
+      <a href="#blog"><span class="idx">06</span> blog.md</a>
+      <a href="#contact"><span class="idx">07</span> contact</a>
+    </div>
+    <div class="nav-foot">
+      <div><span class="status-dot"></span><span class="mono" style="font-size:12px;color:var(--ink-text);">Open to internships</span></div>
+      <div class="stat">Location: Abidjan, Côte d'Ivoire</div>
+      <div class="stat">Uptime: CS student · security learner</div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- HERO -->
+    <header class="hero" id="about">
+      <div class="hero-top">
+        <span class="status-dot"></span> whoami --verbose
+      </div>
+      <h1>Aymeric <span class="accent">Issika</span></h1>
+      <div class="tagline">Computer Science student turning full-stack engineering skills toward offensive &amp; defensive security — enumerating boxes, breaking labs, and writing it all up.</div>
+      <div class="type-line mono"><span id="typedLine"></span><span class="cursor2"></span></div>
+      <div class="badge-row">
+        <span class="badge">📍 Abidjan, Côte d'Ivoire</span>
+        <span class="badge">🎓 B.S. Computer Science — Africa Vision University</span>
+        <span class="badge">🔐 Security+ Bootcamp Graduate</span>
+        <span class="badge">🚩 TryHackMe: issikathereal</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#reports">View pentest reports →</a>
+        <a class="btn btn-ghost" href="https://tryhackme.com/p/issikathereal" target="_blank" rel="noopener">TryHackMe profile</a>
+        <a class="btn btn-ghost" href="https://github.com/issikaaymeric" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </header>
+    <div class="stat-strip">
+      <div><div class="num">20+</div><div class="lbl">THM ROOMS CLEARED</div></div>
+      <div><div class="num">2</div><div class="lbl">PRIVILEGE ESCALATION PATHS DOCUMENTED</div></div>
+      <div><div class="num">1</div><div class="lbl">SECURITY+ BOOTCAMP CERT</div></div>
+      <div><div class="num">3+</div><div class="lbl">WRITE-UPS PUBLISHED</div></div>
+    </div>
+
+    <!-- ABOUT -->
+    <section class="section" id="about-detail">
+      <div class="eyebrow">about.me</div>
+      <h2 class="title">About Me</h2>
+      <p class="subhead">A quick rundown of who's behind the terminal.</p>
+      <div class="about-grid">
+        <div>
+          <p>I'm a Computer Science student at <strong style="color:var(--text)">Africa Vision University</strong> in Abidjan, Côte d'Ivoire, currently interning as a full-stack engineer at <strong style="color:var(--text)">Atihmam Conseils</strong>. Alongside shipping product code, I've been building a parallel track in cybersecurity — working through TryHackMe rooms, completing a Security+ bootcamp, and practicing the enumeration-to-privilege-escalation workflow on deliberately vulnerable machines.</p>
+          <p>My background in backend engineering (FastAPI, Spring Boot, Node.js) and scripting (Python) means I approach security the way I approach software: read the docs, enumerate everything, and automate the boring parts. This portfolio is where that security side lives — certifications, completed labs, pentest write-ups, and small tools I've built to make recon and reporting faster.</p>
+          <p>Currently focused on: Linux &amp; Windows privilege escalation, Active Directory fundamentals, and building Python tooling for reconnaissance.</p>
+        </div>
+        <div class="term-card">
+          <div class="term-head"><span class="r"></span><span class="y"></span><span class="g"></span><span class="fname">profile.json</span></div>
+          <div class="term-body mono">{
+  <span class="k">"name"</span>: <span class="v">"Aymeric Issika"</span>,
+  <span class="k">"alias"</span>: <span class="v">"issikathereal"</span>,
+  <span class="k">"role"</span>: <span class="v">"CS Student / Security Intern"</span>,
+  <span class="k">"education"</span>: <span class="v">"B.S. Computer Science,
+    Africa Vision University"</span>,
+  <span class="k">"currently_at"</span>: <span class="v">"Atihmam Conseils"</span>,
+  <span class="k">"focus"</span>: [<span class="v">"pentesting"</span>, <span class="v">"AD security"</span>,
+    <span class="v">"python tooling"</span>],
+  <span class="k">"status"</span>: <span class="v">"open_to_internships"</span>
+}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CERTS -->
+    <section class="section" id="certs">
+      <div class="eyebrow">certifications</div>
+      <h2 class="title">Certifications</h2>
+      <p class="subhead">Formal training completed and verified.</p>
+      <div class="cert-card">
+        <div class="cert-stamp">VERIFIED ✓</div>
+        <div class="cert-icon">📜</div>
+        <div>
+          <h3>Security+ Bootcamp</h3>
+          <div class="issuer">GoMyCode — Cybersecurity Track</div>
+          <div class="tag-row"><span class="tag">Network Security</span><span class="tag">Threats &amp; Vulnerabilities</span><span class="tag">Risk Management</span></div>
+          <a class="card-link" href="https://diploma.gomycode.app/?id=31785423641311469" target="_blank" rel="noopener">View diploma →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRYHACKME -->
+    <section class="section" id="thm">
+      <div class="eyebrow">tryhackme.log</div>
+      <h2 class="title">TryHackMe Progress</h2>
+      <p class="subhead">Rooms completed on <a class="card-link" href="https://tryhackme.com/p/issikathereal" target="_blank" rel="noopener">tryhackme.com/p/issikathereal</a> — from fundamentals to full CTF boxes.</p>
+      <div class="room-grid" id="roomGrid"></div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="section" id="reports">
+      <div class="eyebrow">pentest_reports</div>
+      <h2 class="title">Pentest Reports &amp; Write-ups</h2>
+      <p class="subhead">Methodology-focused write-ups from completed TryHackMe boxes. New reports can be added from the dashboard.</p>
+      <div class="grid-3" id="reportsGrid"></div>
+    </section>
+
+    <!-- TOOLS -->
+    <section class="section" id="tools">
+      <div class="eyebrow">security_tools</div>
+      <h2 class="title">Python Security Tools</h2>
+      <p class="subhead">Small scripts built to speed up recon, enumeration, and reporting.</p>
+      <div class="grid-3" id="toolsGrid"></div>
+    </section>
+
+    <!-- BLOG -->
+    <section class="section" id="blog">
+      <div class="eyebrow">blog.md</div>
+      <h2 class="title">Technical Blog</h2>
+      <p class="subhead">Notes on concepts, tools, and lessons learned along the way.</p>
+      <div class="grid-3" id="blogGrid"></div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section" id="contact">
+      <div class="eyebrow">contact</div>
+      <h2 class="title">Get In Touch</h2>
+      <p class="subhead">Open to internships, CTF collaboration, and security-focused conversations.</p>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="lbl">PRIMARY EMAIL</div>
+          <a class="val" href="mailto:issikaaymeric@gmail.com">issikaaymeric@gmail.com</a>
+        </div>
+        <div class="contact-card">
+          <div class="lbl">SECURITY / CTF EMAIL</div>
+          <a class="val" href="mailto:issikathereal@gmail.com">issikathereal@gmail.com</a>
+        </div>
+      </div>
+      <div class="social-row">
+        <a class="social-chip" href="https://github.com/issikaaymeric" target="_blank" rel="noopener">GitHub ↗</a>
+        <a class="social-chip" href="https://tryhackme.com/p/issikathereal" target="_blank" rel="noopener">TryHackMe ↗</a>
+        <a class="social-chip" href="https://www.linkedin.com/in/issika-aymeric-kouam%C3%A9-214866373/" target="_blank" rel="noopener">LinkedIn ↗</a>
+        <a class="social-chip" href="https://x.com/issikaaymeric" target="_blank" rel="noopener">X ↗</a>
+      </div>
+    </section>
+
+    <footer>
+      <span>© 2026 Aymeric Issika — built with a terminal in mind.</span>
+      <span>status: <span style="color:var(--green)">online</span></span>
+    </footer>
+  </main>
+</div>
+
+<!-- Dashboard toggle -->
+<button class="dash-toggle" onclick="openDash()">⌘ dashboard</button>
+
+<div id="dashPanel">
+  <div class="dash-box">
+    <div class="dash-header">
+      <h3>~/dashboard — add content</h3>
+      <div class="dash-close" onclick="closeDash()">close [x]</div>
+    </div>
+    <div class="dash-body">
+      <div class="dash-tabs">
+        <div class="dash-tab active" data-cat="report" onclick="setCat('report',this)">Pentest Report</div>
+        <div class="dash-tab" data-cat="walkthrough" onclick="setCat('walkthrough',this)">Walkthrough</div>
+        <div class="dash-tab" data-cat="blog" onclick="setCat('blog',this)">Blog Post</div>
+        <div class="dash-tab" data-cat="tool" onclick="setCat('tool',this)">Tool</div>
+      </div>
+      <form id="entryForm" onsubmit="return submitEntry(event)">
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="f-title" required placeholder="e.g. Blue — HTB Write-up">
+        </div>
+        <div class="field">
+          <label>Summary</label>
+          <textarea id="f-summary" required placeholder="Short description of the box / post / tool"></textarea>
+        </div>
+        <div class="field">
+          <label>Difficulty / Language (optional)</label>
+          <input type="text" id="f-tag" placeholder="e.g. Easy, Medium, Python">
+        </div>
+        <div class="field">
+          <label>Link (optional)</label>
+          <input type="url" id="f-link" placeholder="https://...">
+        </div>
+        <button type="submit" class="btn btn-primary dash-submit">Publish entry</button>
+      </form>
+      <div class="entry-list">
+        <div class="eyebrow" style="margin-bottom:12px;">stored_entries</div>
+        <div id="entryList"></div>
+      </div>
+      <div class="dash-note">Entries you publish here are saved to shared storage for this portfolio artifact — anyone with the link can see (and, currently, add or remove) them. Treat this as your live editing panel rather than a private admin area.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- Boot sequence ---------------- */
+const bootLines = [
+"root@issika:~$ initiating security clearance...",
+"[ OK ] loading identity: Aymeric Issika",
+"[ OK ] mounting /certifications ... Security+ Bootcamp",
+"[ OK ] connecting tryhackme.com/p/issikathereal ...",
+"[ OK ] connecting github.com/issikaaymeric ...",
+"[ OK ] decrypting pentest_reports/ ...",
+"[ OK ] access granted.",
+""
+];
+const bootEl = document.getElementById('bootText');
+let bi=0, ci=0;
+function typeBoot(){
+  if(bi>=bootLines.length){ setTimeout(()=>{ document.getElementById('boot').classList.add('hide'); startTyped(); },400); return; }
+  const line = bootLines[bi];
+  if(ci<=line.length){
+    let text = bootLines.slice(0,bi).join('\n') + (bi>0?'\n':'') + line.slice(0,ci);
+    bootEl.textContent = text;
+    ci++;
+    setTimeout(typeBoot, 10);
+  } else { bi++; ci=0; setTimeout(typeBoot, 90); }
+}
+typeBoot();
+
+/* ---------------- Hero typed line ---------------- */
+const typedPhrases = [
+  "> nmap -sV -A target.thm",
+  "> enumerating services...",
+  "> privilege escalation in progress...",
+  "> writing it all up for the report."
+];
+let tp=0, tc=0, deleting=false;
+function startTyped(){ requestAnimationFrame(typeLoop); }
+function typeLoop(){
+  const el = document.getElementById('typedLine');
+  const phrase = typedPhrases[tp];
+  if(!deleting){
+    el.textContent = phrase.slice(0,tc);
+    tc++;
+    if(tc>phrase.length+1){ deleting=true; setTimeout(typeLoop,1400); return; }
+  } else {
+    el.textContent = phrase.slice(0,tc);
+    tc--;
+    if(tc<0){ deleting=false; tp=(tp+1)%typedPhrases.length; tc=0; }
+  }
+  setTimeout(typeLoop, deleting?25:55);
+}
+
+/* ---------------- Nav active state ---------------- */
+const navLinks = document.querySelectorAll('.nav-tree a');
+const sections = ['about','certs','thm','reports','tools','blog','contact'].map(id=>document.getElementById(id));
+window.addEventListener('scroll', ()=>{
+  let current = sections[0];
+  sections.forEach(s=>{ if(s && window.scrollY >= s.offsetTop - 140) current = s; });
+  navLinks.forEach(a=>a.classList.toggle('active', a.getAttribute('href') === '#'+current.id));
+});
+
+/* ---------------- Rooms grid ---------------- */
+const rooms = [
+  ["Pickle Rick","Easy"],["Basic Pentesting","Easy"],["Kenobi","Easy"],["RootMe","Easy"],
+  ["Cryptography for Dummies","Easy"],["Linux Fundamentals Part 1","Easy"],["Windows Fundamentals 1","Easy"],
+  ["Windows Fundamentals 3","Easy"],["Offensive Security Intro","Easy"],["Defensive Security Intro","Easy"],
+  ["Careers in Cyber","Easy"],["Active Directory Basics","Easy"],["Windows Command Line","Easy"],
+  ["Search Skills","Easy"],["Networking Concepts","Easy"],["Cryptography Basics","Easy"],
+  ["Crack the Hash","Easy"],["Mr Robot CTF","Medium"],["Vulnversity","Easy"],["Simple CTF","Easy"],["Gatekeeper","Medium"]
+];
+const roomGrid = document.getElementById('roomGrid');
+roomGrid.innerHTML = rooms.map(([name,diff])=>`
+  <div class="room">
+    <div class="rname">${name}</div>
+    <div class="rmeta"><span class="tag difficulty-${diff.toLowerCase()}">${diff}</span><span style="color:var(--green);font-family:var(--display);font-size:11px;">✓ done</span></div>
+  </div>
+`).join('');
+
+/* ---------------- Seed content (static) ---------------- */
+const seedReports = [
+  {title:"Kenobi — TryHackMe", summary:"Enumerated Samba shares to pull SSH keys, abused a vulnerable ProFTPd version for initial access, then chained a PATH-hijack on a SUID binary to escalate to root.", tag:"Easy", link:"https://tryhackme.com/room/kenobi"},
+  {title:"RootMe — TryHackMe", summary:"Web enumeration uncovered an upload filter bypass for a PHP reverse shell, followed by a classic SUID Python privilege escalation to root.", tag:"Easy", link:"https://tryhackme.com/room/rrootme"},
+  {title:"Mr Robot CTF — TryHackMe", summary:"WordPress recon and a brute-forced admin login led to a reverse shell via a themed plugin editor, then a SUID nmap interactive-mode escalation to root.", tag:"Medium", link:"https://tryhackme.com/room/mrrobot"}
+];
+const seedTools = [
+  {title:"portscan-lite", summary:"Lightweight multithreaded TCP port scanner with service-banner grabbing, built to speed up initial recon before a full nmap pass.", tag:"Python", link:""},
+  {title:"hash-id-cracker", summary:"CLI utility that fingerprints a hash format and runs a wordlist attack against it — built while working through Crack the Hash.", tag:"Python", link:""},
+  {title:"subdir-hunter", summary:"Simple async directory/file brute-forcer for web recon, with a configurable wordlist and status-code filtering.", tag:"Python", link:""}
+];
+const seedBlog = [
+  {title:"Notes on Linux Privilege Escalation", summary:"A running checklist of the enumeration steps I actually use — SUID binaries, cron jobs, sudo misconfig, and kernel exploits — distilled from lab practice.", tag:"Write-up", link:""},
+  {title:"Getting Started with Active Directory Attacks", summary:"What I learned working through TryHackMe's AD Basics room: the core AD objects, common misconfigurations, and why enumeration always comes first.", tag:"Notes", link:""}
+];
+
+/* ---------------- Storage-backed dynamic entries ---------------- */
+let allEntries = []; // {id, category, title, summary, tag, link}
+
+function cardHTML(e, removable){
+  return `<div class="card">
+    <h3>${escapeHTML(e.title)}</h3>
+    <p>${escapeHTML(e.summary)}</p>
+    <div class="tag-row">${e.tag?`<span class="tag">${escapeHTML(e.tag)}</span>`:''}</div>
+    ${e.link?`<a class="card-link" href="${escapeHTML(e.link)}" target="_blank" rel="noopener">View →</a>`:''}
+  </div>`;
+}
+function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderGrids(){
+  const reportsGrid = document.getElementById('reportsGrid');
+  const toolsGrid = document.getElementById('toolsGrid');
+  const blogGrid = document.getElementById('blogGrid');
+
+  const dynReports = allEntries.filter(e=>e.category==='report'||e.category==='walkthrough');
+  const dynTools = allEntries.filter(e=>e.category==='tool');
+  const dynBlog = allEntries.filter(e=>e.category==='blog');
+
+  reportsGrid.innerHTML = seedReports.map(e=>cardHTML(e,false)).join('') + dynReports.map(e=>cardHTML(e,true)).join('');
+  toolsGrid.innerHTML = seedTools.map(e=>cardHTML(e,false)).join('') + dynTools.map(e=>cardHTML(e,true)).join('');
+  blogGrid.innerHTML = seedBlog.map(e=>cardHTML(e,false)).join('') + dynBlog.map(e=>cardHTML(e,true)).join('');
+}
+renderGrids();
+
+async function loadEntries(){
+  try{
+    const idx = await window.storage.list('entry:', true);
+    if(!idx || !idx.keys || idx.keys.length===0){ allEntries=[]; renderGrids(); renderDashList(); return; }
+    const results = await Promise.all(idx.keys.map(k=>window.storage.get(k, true).catch(()=>null)));
+    allEntries = results.filter(Boolean).map(r=>{
+      try{ return JSON.parse(r.value); }catch(e){ return null; }
+    }).filter(Boolean).sort((a,b)=> (b.ts||0)-(a.ts||0));
+  }catch(e){
+    allEntries = [];
+  }
+  renderGrids();
+  renderDashList();
+}
+loadEntries();
+
+let activeCat = 'report';
+function setCat(cat, el){
+  activeCat = cat;
+  document.querySelectorAll('.dash-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function submitEntry(ev){
+  ev.preventDefault();
+  const title = document.getElementById('f-title').value.trim();
+  const summary = document.getElementById('f-summary').value.trim();
+  const tag = document.getElementById('f-tag').value.trim();
+  const link = document.getElementById('f-link').value.trim();
+  if(!title || !summary) return false;
+  const id = 'entry:' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
+  const data = { id, category: activeCat, title, summary, tag, link, ts: Date.now() };
+  try{
+    const res = await window.storage.set(id, JSON.stringify(data), true);
+    if(!res){ alert('Could not save this entry — please try again.'); return false; }
+    document.getElementById('entryForm').reset();
+    await loadEntries();
+  }catch(e){
+    alert('Storage error — could not save this entry.');
+  }
+  return false;
+}
+
+function renderDashList(){
+  const list = document.getElementById('entryList');
+  if(allEntries.length===0){ list.innerHTML = '<div class="empty-note">No entries added yet. Anything you publish here will also appear in the matching section of the site.</div>'; return; }
+  list.innerHTML = allEntries.map(e=>`
+    <div class="entry-row">
+      <div>
+        <div class="et">${escapeHTML(e.title)}</div>
+        <div class="ec">${e.category}${e.tag?(' · '+escapeHTML(e.tag)):''}</div>
+      </div>
+      <button class="del-btn" onclick="deleteEntry('${e.id}')">delete</button>
+    </div>
+  `).join('');
+}
+
+async function deleteEntry(id){
+  try{
+    await window.storage.delete(id, true);
+    await loadEntries();
+  }catch(e){
+    alert('Could not delete this entry.');
+  }
+}
+
+function openDash(){ document.getElementById('dashPanel').classList.add('open'); }
+function closeDash(){ document.getElementById('dashPanel').classList.remove('open'); }
+</script>
+</body>
+</html>
